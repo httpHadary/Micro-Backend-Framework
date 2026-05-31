@@ -6,18 +6,22 @@ public class Request {
     private String requestURL;
     private String httpVersion;
     private Map<String, String> requestHeaders;
+    private Map<String, String> pathParameters;
     private byte[] requestBody;
 
     Request() {
         requestHeaders = new HashMap<>();
+        pathParameters = new HashMap<>();
     }
-    Request(String[] requestLine, Map<String, String> requestHeaders) {
+    Request(String[] requestLine, Map<String, String> requestHeaders, Map<String, String> pathParameters) {
         setRequestLine(requestLine);
         setRequestHeaders(requestHeaders);
+        setPathParameters(pathParameters);
     }
-    Request(String[] requestLine, Map<String, String> requestHeaders, byte[] requestBody) {
+    Request(String[] requestLine, Map<String, String> requestHeaders, Map<String, String> pathParameters, byte[] requestBody) {
         setRequestLine(requestLine);
         setRequestHeaders(requestHeaders);
+        setPathParameters(pathParameters);
         setRequestBody(requestBody);
     }
 
@@ -83,5 +87,24 @@ public class Request {
         }
 
         return parameters;
+    }
+
+    public void setPathParameters(Map<String, String> pathParameters) {
+        if(pathParameters != null)
+            this.pathParameters = pathParameters;
+        else
+            this.pathParameters = new HashMap<>();
+    }
+    public Map<String, String> getPathParameters() {
+        return pathParameters;
+    }
+    public String getPathParameter(String key) {
+        return pathParameters.get(key);
+    }
+    public void addPathParameter(String key, String value) {
+        pathParameters.put(key, value);
+    }
+    public void clearPathParameters() {
+        pathParameters.clear();
     }
 }

@@ -2,12 +2,11 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Map;
-import java.net.URLDecoder;
 
 public class HTTPServer {
     static String ROOT_DIRECTORY = "";
+    static Router router = new Router();
 
     public static void main(String[] args) {
         for(int i = 0; i < args.length - 1 ; i++) {
@@ -19,6 +18,8 @@ public class HTTPServer {
             ServerSocket serverSocket = new ServerSocket(4221)
         )
         {
+
+            registerRoutes();
 
             while (true) {
                 Socket connection = serverSocket.accept();
@@ -130,125 +131,32 @@ public class HTTPServer {
             response.addResponseHeader("Content-Type", "text/plain");
             return;
         }
+        
+        Router.RouteResult result = router.handle(request, response);
 
-        switch (verb) {
-            case "GET" -> handleGETs(request, response, url);
-            case "POST" -> handlePOSTs(request, response, url);
-            case "PUT" -> handlePUTs(request, response, url);
-            case "DELETE" -> handleDELETEs(response, url);
-            case "HEAD" -> handleHEADs(request, response, url);
-            default -> {
-                response.setStatusCode("405");
-                response.setTextResponseBody("This HTTP Method Is Not Supported.");
-                response.addResponseHeader("Content-Type", "text/plain");
-            }
-        }
-    }
-
-    static void handleGETs(Request request, Response response, String url) throws IOException {
-        if(url.equals("/")) {
-            response.setStatusCode("200");
-            response.addResponseHeader("Content-Type", "text/plain");
-            response.setTextResponseBody("Hello From Elhaddour's Server.");
-        } else if(url.equals("/hello")) {
-            response.setStatusCode("200");
-            response.addResponseHeader("Content-Type", "text/plain");
-            response.setTextResponseBody("Hello World");
-        } else if(url.startsWith("/echo/")) {
-            response.setStatusCode("200");
-            response.addResponseHeader("Content-Type", "text/plain");
-            response.setTextResponseBody(url.substring(6));
-        } else if(url.equals("/user-agent")) {
-            response.setStatusCode("200");
-            response.addResponseHeader("Content-Type", "text/plain");
-            response.setTextResponseBody(request.getRequestHeaders().getOrDefault("User-Agent" , "null"));
-        } else if(url.startsWith("/search?")) {
-            Map<String, String> parameters = request.getQueryParameters();
-            response.setStatusCode("200");
-            response.addResponseHeader("Content-Type", "text/plain");
-            response.setTextResponseBody("Searching For: " + parameters.getOrDefault("q", "java") + "\nPage: " + parameters.getOrDefault("page", "1"));
-        } else if (url.startsWith("/files/")) {
-            String fileName = URLDecoder.decode(url.substring(7), StandardCharsets.UTF_8);
-            File file = new File(ROOT_DIRECTORY, fileName);
-
-            if(file.exists()) {
-                byte[] body = Files.readAllBytes(file.toPath());
-                response.setStatusCode("200");
-                response.addResponseHeader("Content-Type", getMimeType(fileName));
-                response.setResponseBody(body);
-            } else {
-                response.setStatusCode("404");
-                response.addResponseHeader("Content-Type", "text/plain");
-                response.setTextResponseBody("File Was Not Found");
-            }
+        if (result == Router.RouteResult.MATCHED)
+            return;
+        else if (result == Router.RouteResult.METHOD_NOT_ALLOWED) {
+            response.setStatusCode("405");
+            response.setTextResponseBody("Method Not Allowed");
+            return;
         } else {
             response.setStatusCode("404");
             response.setTextResponseBody("Route Is Not Found");
         }
     }
 
-    static void handlePOSTs(Request request, Response response, String url) throws IOException {
-        if (!url.startsWith("/files/")) {
-            response.setStatusCode("404");
-            response.setTextResponseBody("Route Is Not Found");
-            return;
-        }
-
-        int startOfFileName = url.lastIndexOf("/") + 1;
-        String fileName = java.net.URLDecoder.decode(url.substring(startOfFileName), StandardCharsets.UTF_8);
-
-        File file = new File(ROOT_DIRECTORY, fileName);
-
-        Files.write(file.toPath(), request.getRequestBody());
-        response.setStatusCode("201");
-        response.setResponseBody(new byte[0]);
-    }
-
-    static void handlePUTs(Request request, Response response, String url) throws IOException {
-        if (!url.startsWith("/files/")) {
-            response.setStatusCode("404");
-            response.setTextResponseBody("Route Is Not Found");
-            return;
-        }
-
-        int startOfFileName = url.lastIndexOf("/") + 1;
-        String fileName = java.net.URLDecoder.decode(url.substring(startOfFileName), StandardCharsets.UTF_8);
-
-        File file = new File(ROOT_DIRECTORY, fileName);
-        Files.write(file.toPath(), request.getRequestBody());
-
-        response.setStatusCode("200");
-        response.addResponseHeader("Content-Type", "text/plain");
-        response.setTextResponseBody("File Updated Successfully");
-    }
-
-    static void handleDELETEs(Response response, String url) throws IOException {
-        if (!url.startsWith("/files/")) {
-            response.setStatusCode("404");
-            response.setTextResponseBody("Route Is Not Found");
-            return;
-        }
-
-        int startOfFileName = url.lastIndexOf("/") + 1;
-        String fileName = java.net.URLDecoder.decode(url.substring(startOfFileName), StandardCharsets.UTF_8);
-
-        File file = new File(ROOT_DIRECTORY, fileName);
-
-        boolean isDeleted = Files.deleteIfExists(file.toPath());
-
-        if (isDeleted) {
-            response.setStatusCode("200");
-            response.setTextResponseBody("File Deleted Successfully");
-        } else {
-            response.setStatusCode("404");
-            response.setTextResponseBody("File Not Found");
-        }
-
-        response.addResponseHeader("Content-Type", "text/plain");
-    }
-
-    static void handleHEADs(Request request, Response response, String url) throws IOException {
-        handleGETs(request, response, url);
+    static void registerRoutes() {
+        router.get("/", Handlers::homeHandler);
+        router.get("/hello", Handlers::helloHandler);
+        router.get("/user-agent", Handlers::userAgentHandler);
+        router.get("/echo/{message}", Handlers::echoHandler);
+        router.get("/search", Handlers::searchHandler);
+        router.get("/files/{filename}", Handlers::downloadFileHandler);
+        router.post("/files/{filename}", Handlers::createFileHandler);
+        router.put("/files/{filename}", Handlers::updateFileHandler);
+        router.delete("/files/{filename}", Handlers::deleteFileHandler);
+        router.head("/files/{filename}", Handlers::headHandler);
     }
 
     static byte[] getResponse(Response response, boolean includeBody) throws IOException {
