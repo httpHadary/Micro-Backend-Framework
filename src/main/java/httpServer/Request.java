@@ -1,3 +1,5 @@
+package httpServer;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,11 +15,13 @@ public class Request {
         requestHeaders = new HashMap<>();
         pathParameters = new HashMap<>();
     }
+
     Request(String[] requestLine, Map<String, String> requestHeaders, Map<String, String> pathParameters) {
         setRequestLine(requestLine);
         setRequestHeaders(requestHeaders);
         setPathParameters(pathParameters);
     }
+
     Request(String[] requestLine, Map<String, String> requestHeaders, Map<String, String> pathParameters, byte[] requestBody) {
         setRequestLine(requestLine);
         setRequestHeaders(requestHeaders);
@@ -32,15 +36,19 @@ public class Request {
             this.httpVersion = requestLine[2];
         }
     }
+
     public String getRequestLine() {
         return getVerb() + " " + getURL() + " " + getVersion();
     }
+
     public String getVerb() {
         return this.requestVerb;
     }
+
     public String getURL() {
         return this.requestURL;
     }
+
     public String getVersion() {
         return this.httpVersion;
     }
@@ -51,9 +59,11 @@ public class Request {
         else
             this.requestHeaders = new HashMap<>();
     }
+
     public Map<String, String> getRequestHeaders() {
         return this.requestHeaders;
     }
+
     public void addRequestHeader(String key, String value) {
         if(!key.isEmpty() && !value.isEmpty()) {
             this.requestHeaders.put(key, value);
@@ -65,6 +75,7 @@ public class Request {
             requestBody = new byte[0];
         this.requestBody = requestBody;
     }
+
     public byte[] getRequestBody() {
         return this.requestBody;
     }
@@ -95,16 +106,21 @@ public class Request {
         else
             this.pathParameters = new HashMap<>();
     }
+
     public Map<String, String> getPathParameters() {
         return pathParameters;
     }
+
     public String getPathParameter(String key) {
         return pathParameters.get(key);
     }
+
     public void addPathParameter(String key, String value) {
         pathParameters.put(key, value);
     }
+
     public void clearPathParameters() {
         pathParameters.clear();
     }
+
 }

@@ -1,12 +1,22 @@
+package httpServer;
+
+import middleware.ExceptionMiddleware;
+import middleware.LoggingMiddleware;
+import middleware.Middleware;
+import middleware.MiddlewareChain;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class HTTPServer {
     static String ROOT_DIRECTORY = "";
-    static Router router = new Router();
+    private static Router router = new Router();
+    private static final List<Middleware> middlewares = new ArrayList<>();
 
     public static void main(String[] args) {
         for(int i = 0; i < args.length - 1 ; i++) {
@@ -18,8 +28,11 @@ public class HTTPServer {
             ServerSocket serverSocket = new ServerSocket(4221)
         )
         {
-
             registerRoutes();
+
+            use(new ExceptionMiddleware());
+            use(new LoggingMiddleware());
+
 
             while (true) {
                 Socket connection = serverSocket.accept();
@@ -55,12 +68,24 @@ public class HTTPServer {
                 break;
             }
 
-            handleRouting(requestObject, responseObject);
+            MiddlewareChain middlewareChain =
+                    new MiddlewareChain(
+                        middlewares,
+                        () -> {
+                                try {
+                                    handleRouting(requestObject, responseObject);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            } );
+
+            middlewareChain.next(requestObject, responseObject);
 
             byte[] response = getResponse(responseObject, !requestObject.getVerb().equals("HEAD"));
             output.write(response);
             output.flush();
 
+            // to handle keep-alive connections
             String connectionStatus = requestObject.getRequestHeaders().getOrDefault("Connection", "");
             if (connectionStatus.equalsIgnoreCase("close")) {
                 break;
@@ -142,21 +167,21 @@ public class HTTPServer {
             return;
         } else {
             response.setStatusCode("404");
-            response.setTextResponseBody("Route Is Not Found");
+            response.setTextResponseBody("httpServer.Route Is Not Found");
         }
     }
 
     static void registerRoutes() {
-        router.get("/", Handlers::homeHandler);
-        router.get("/hello", Handlers::helloHandler);
-        router.get("/user-agent", Handlers::userAgentHandler);
-        router.get("/echo/{message}", Handlers::echoHandler);
-        router.get("/search", Handlers::searchHandler);
-        router.get("/files/{filename}", Handlers::downloadFileHandler);
-        router.post("/files/{filename}", Handlers::createFileHandler);
-        router.put("/files/{filename}", Handlers::updateFileHandler);
-        router.delete("/files/{filename}", Handlers::deleteFileHandler);
-        router.head("/files/{filename}", Handlers::headHandler);
+        router.get("/", Handlers::homeHandler, false);
+        router.get("/hello", Handlers::helloHandler, false);
+        router.get("/user-agent", Handlers::userAgentHandler, false);
+        router.get("/echo/{message}", Handlers::echoHandler, false);
+        router.get("/search", Handlers::searchHandler, false);
+        router.get("/files/{filename}", Handlers::downloadFileHandler, false);
+        router.post("/files/{filename}", Handlers::createFileHandler, false);
+        router.put("/files/{filename}", Handlers::updateFileHandler, false);
+        router.delete("/files/{filename}", Handlers::deleteFileHandler, false);
+        router.head("/files/{filename}", Handlers::headHandler, false);
     }
 
     static byte[] getResponse(Response response, boolean includeBody) throws IOException {
@@ -199,6 +224,11 @@ public class HTTPServer {
             case "txt" -> "text/plain";
             default -> "application/octet-stream";
         };
+    }
+
+    public static void use(Middleware middleware) {
+        if (middleware != null)
+            middlewares.add(middleware);
     }
 
 }

@@ -1,3 +1,5 @@
+package httpServer;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -13,20 +15,20 @@ public class Router {
         routes = new ArrayList<>();
     }
 
-    public void get(String path, RouteHandler handler) {
-        routes.add(new Route("GET", path, handler));
+    public void get(String path, RouteHandler handler, boolean requiresAuth) {
+        routes.add(new Route("GET", path, handler, requiresAuth));
     }
-    public void post(String path, RouteHandler handler) {
-        routes.add(new Route("POST", path, handler));
+    public void post(String path, RouteHandler handler, boolean requiresAuth) {
+        routes.add(new Route("POST", path, handler, requiresAuth));
     }
-    public void put(String path, RouteHandler handler) {
-        routes.add(new Route("PUT", path, handler));
+    public void put(String path, RouteHandler handler, boolean requiresAuth) {
+        routes.add(new Route("PUT", path, handler, requiresAuth));
     }
-    public void delete(String path, RouteHandler handler) {
-        routes.add(new Route("DELETE", path, handler));
+    public void delete(String path, RouteHandler handler, boolean requiresAuth) {
+        routes.add(new Route("DELETE", path, handler, requiresAuth));
     }
-    public void head(String path, RouteHandler handler) {
-        routes.add(new Route("HEAD", path, handler));
+    public void head(String path, RouteHandler handler, boolean requiresAuth) {
+        routes.add(new Route("HEAD", path, handler, requiresAuth));
     }
 
     public boolean matches(Route route, Request request) {
@@ -55,7 +57,7 @@ public class Router {
     private String[] splitPath(String path) {
         path = path.replaceFirst("^/", "");
 
-        if (path.isEmpty())return new String[0];
+        if (path.isEmpty()) return new String[0];
 
         return path.split("/");
     }
@@ -70,6 +72,7 @@ public class Router {
                 doesPathExists = true;
 
                 if(route.getMethod().equals(request.getVerb())) {
+
                     route.getHandler().handle(request, response);
 
                     return RouteResult.MATCHED; //everything is fine

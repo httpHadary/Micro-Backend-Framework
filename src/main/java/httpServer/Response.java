@@ -1,3 +1,5 @@
+package httpServer;
+
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +15,8 @@ public class Response {
     static {
         STATUS_CODES.put("200", "OK");
         STATUS_CODES.put("201", "Created");
-        STATUS_CODES.put("400", "Bad Request");
+        STATUS_CODES.put("400", "Bad httpServer.Request");
+        STATUS_CODES.put("401", "Unauthorized");
         STATUS_CODES.put("404", "Not Found");
         STATUS_CODES.put("405", "Method Not Allowed");
         STATUS_CODES.put("500", "Internal Server Error");
@@ -24,11 +27,13 @@ public class Response {
         responseHeaders = new HashMap<>();
         addResponseHeader("Connection", "keep-alive");
     }
+
     Response(String statusCode, Map<String, String> responseHeaders) {
         this.setStatusCode(statusCode);
         this.setResponseHeaders(responseHeaders);
         addResponseHeader("Connection", "keep-alive");
     }
+
     Response(String statusCode, Map<String, String> responseHeaders, byte[] responseBody) {
         this.setStatusCode(statusCode);
         this.setResponseHeaders(responseHeaders);
@@ -46,6 +51,7 @@ public class Response {
             this.setCodeInterpretation(STATUS_CODES.get(statusCode));
         }
     }
+
     public String getStatusCode() {
         return this.statusCode;
     }
@@ -54,6 +60,7 @@ public class Response {
         if(codeInterpretation != null && !codeInterpretation.isEmpty())
             this.codeInterpretation = codeInterpretation;
     }
+
     public String getCodeInterpretation() {
         return this.codeInterpretation;
     }
@@ -68,9 +75,11 @@ public class Response {
         else
             this.responseHeaders = new HashMap<>();
     }
+
     public Map<String, String> getResponseHeaders() {
         return this.responseHeaders;
     }
+
     public void addResponseHeader(String key, String value) {
         if(!key.isEmpty() && !value.isEmpty()) {
             this.responseHeaders.put(key, value);
@@ -84,12 +93,14 @@ public class Response {
         this.responseBody = responseBody;
         addResponseHeader("Content-Length", this.responseBody.length + "");
     }
+
     public void setTextResponseBody(String responseBody) {
         if(responseBody == null)
             responseBody = "";
 
         setResponseBody(responseBody.getBytes(StandardCharsets.UTF_8));
     }
+
     public byte[] getResponseBody() {
         return this.responseBody;
     }
