@@ -14,7 +14,8 @@ public class LoggingMiddleware implements Middleware {
 
         double durationMilliSec = (double) (endTime - startTime) / 1_000_000;
 
-        System.out.printf("[INFO] %s %s -> %s (%.3f ms)%n",
+        System.out.printf("[INFO] %s %s %s -> %s (%.3f ms)%n",
+                request.getClientIP(),
                 request.getVerb(),
                 request.getURL(),
                 response.getStatusCode(),

@@ -31,7 +31,7 @@ public class Router {
         routes.add(new Route("HEAD", path, handler, requiresAuth));
     }
 
-    public RouteResult findRoute(Request request) throws IOException {
+    public RouteResult findRoute(Request request){
         boolean doesPathExists = false;
 
         for(Route route : routes) {

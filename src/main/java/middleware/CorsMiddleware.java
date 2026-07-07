@@ -7,7 +7,7 @@ public class CorsMiddleware implements Middleware{
     @Override
     public void execute(Request request, Response response, MiddlewareChain middlewareChain) {
 
-        if (request.getVerb().equals("OPTIONS")) {
+        if ("OPTIONS".equals(request.getVerb())) {
             response.setStatusCode("204");
             response.addResponseHeader("Access-Control-Allow-Origin", "*");
             response.addResponseHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, HEAD, OPTIONS");

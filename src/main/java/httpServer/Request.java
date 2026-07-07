@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Request {
+    private String clientIP;
     private String requestVerb;
     private String requestURL;
     private String httpVersion;
@@ -17,25 +18,20 @@ public class Request {
         pathParameters = new HashMap<>();
     }
 
-    Request(String[] requestLine, Map<String, String> requestHeaders, Map<String, String> pathParameters) {
-        setRequestLine(requestLine);
-        setRequestHeaders(requestHeaders);
-        setPathParameters(pathParameters);
-    }
-
-    Request(String[] requestLine, Map<String, String> requestHeaders, Map<String, String> pathParameters, byte[] requestBody) {
-        setRequestLine(requestLine);
-        setRequestHeaders(requestHeaders);
-        setPathParameters(pathParameters);
-        setRequestBody(requestBody);
-    }
-
     public void setRequestLine(String[] requestLine) {
         if(requestLine != null) {
             this.requestVerb = requestLine[0];
             this.requestURL = requestLine[1];
             this.httpVersion = requestLine[2];
         }
+    }
+
+    public void setClientIP(String clientIP) {
+        this.clientIP = clientIP;
+    }
+
+    public String getClientIP() {
+        return this.clientIP;
     }
 
     public String getRequestLine() {
@@ -67,7 +63,7 @@ public class Request {
 
     public void addRequestHeader(String key, String value) {
         if(!key.isEmpty() && !value.isEmpty()) {
-            this.requestHeaders.put(key, value);
+            this.requestHeaders.put(key.toLowerCase(), value);
         }
     }
 

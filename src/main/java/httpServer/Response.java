@@ -86,7 +86,7 @@ public class Response {
 
     public void addResponseHeader(String key, String value) {
         if(!key.isEmpty() && !value.isEmpty()) {
-            this.responseHeaders.put(key, value);
+            this.responseHeaders.put(key.toLowerCase(), value);
         }
     }
 

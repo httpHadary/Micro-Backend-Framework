@@ -10,8 +10,7 @@ public class ExceptionMiddleware implements Middleware{
             middlewareChain.next(request, response);
         } catch (Exception e) {
             response.setStatusCode("500");
-            response.addResponseHeader("content-type", "text/plain");
-            response.setTextResponseBody("Internal Server Error!");
+            response.text("Internal Server Error!");
 
             e.printStackTrace();
         }

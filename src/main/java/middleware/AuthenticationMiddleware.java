@@ -18,12 +18,12 @@ public class AuthenticationMiddleware implements Middleware{
             return;
         }
 
-        String authorizationValue = request.getRequestHeaders().get("Authorization");
+        String authorizationValue = request.getRequestHeaders().get("authorization");
 
         if (!VALID_TOKEN.equals(authorizationValue)) {
             response.setStatusCode("401");
+            response.text("Unauthorized");
             response.addResponseHeader("Content-Type", "text/plain");
-            response.setTextResponseBody("Unauthorized");
             return;
         }
 
