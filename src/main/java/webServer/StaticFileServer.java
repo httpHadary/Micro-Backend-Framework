@@ -12,9 +12,6 @@ public class StaticFileServer {
             path = "/index.html";
         }
 
-        System.out.println("URL = '" + request.getURL() + "'");
-        System.out.println("Path = '" + path + "'");
-
         String fileName = rootDirectory + path;
 
         File file = new File(fileName);
