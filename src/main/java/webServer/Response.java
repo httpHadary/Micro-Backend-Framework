@@ -18,7 +18,7 @@ public class Response {
         STATUS_CODES.put("200", "OK");
         STATUS_CODES.put("201", "Created");
         STATUS_CODES.put("204", "No Content");
-        STATUS_CODES.put("400", "Bad httpServer.Request");
+        STATUS_CODES.put("400", "Bad Request");
         STATUS_CODES.put("401", "Unauthorized");
         STATUS_CODES.put("404", "Not Found");
         STATUS_CODES.put("405", "Method Not Allowed");
